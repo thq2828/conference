@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.haiqing.conference.dao.ConferenceAndPersonnelMapper">
+    <insert id="insert">
+        insert into confer_per
+        (confe_id,per_id)
+        values (#{conferenceId},#{personnelId})
+    </insert>
+    <select id="selectBySeletive" parameterType="int" resultType="map">
+        select confe_id,per_id from confer_per
+        <trim prefix="where" suffixOverrides="AND|OR">
+            <if test="conferenceId != null">
+                confe_id=#{conferenceId} and
+            </if>
+            <if test="personnelId != null">
+                per_id=#{personnelId}
+            </if>
+        </trim>
+    </select>
+    <delete id="deleteByconferenceId" parameterType="int">
+        delete from confer_per
+        where confe_id = #{conferenceId,jdbcType=INTEGER}
+    </delete>
+    
+    <insert id="insertByMultiterm">
+        insert into confer_per
+        (confe_id,per_id)
+        values 
+        <foreach collection="personnerlIds" item="personnelId" separator=",">
+            (#{conferenceId},#{personnelId})
+        </foreach>
+    </insert>
+
+
+</mapper>

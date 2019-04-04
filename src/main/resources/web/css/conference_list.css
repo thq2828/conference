@@ -1,0 +1,225 @@
+/*0.对网页做一些统一的设计*/
+
+* {
+    padding: 0;
+    margin: 0;
+}
+
+http,body {
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    position: absolute;
+}
+
+/*1.给网页分区，设置每一个区域的尺寸*/
+div {
+    /*border: 1px solid red;*/
+    margin: 0 auto;
+    /*padding: 10px;*/
+}
+
+.logo {
+    height: 6%;
+}
+
+.core {
+    height: 84%;
+}
+
+.version {
+    height: 8%;
+    clear: left;
+}
+
+.navigation {
+    width: 13%;
+    height: 100%;
+    float: left;
+}
+
+.content {
+    width: 87%;
+    height: 100%;
+    margin-right: 0;
+
+}
+
+.button {
+    height: 16%;
+}
+
+.title {
+    height: 5%;
+}
+
+.list {
+    height: 70%
+}
+
+.page {
+    height: 9%;
+}
+
+.button div {
+    float: left;
+    width: 30%;
+    height: 50%;
+    padding: 20px;
+
+}
+
+
+/*2.设置背景*/
+.logo {
+    background: #003C7A;
+}
+
+.core {
+    background: #fff;
+}
+
+.navigation {
+    background: #253544;
+}
+
+.version {
+    background: #003C7A;
+}
+
+.title {
+    background: #E6E4E4;
+}
+
+
+/*3.设置文本样式*/
+
+body {
+    font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+}
+
+
+.logo p{
+    font-size: 24px;
+    color: #fff;
+    line-height: 100%;
+    margin-left: 15px;
+}
+
+.version p {
+    line-height: 1.4em;
+    text-align: center;
+    padding-top: 15px;
+    color: #fff
+}
+
+.navigation ul{
+    font-size: 16px;
+}
+.white{
+    color: white;
+    text-indent: 20px;
+    text-align: left;
+}
+
+.title p {
+    font-weight: bold;
+    float: right;
+    margin-bottom: 0;
+    line-height: 36px;
+    /*放到最右边还没解决*/
+}
+
+
+
+
+
+
+.page {
+    text-align: right;
+    padding-right:20px;
+}
+
+
+
+.button div {
+    text-align: center;
+    float: left;
+}
+
+
+/*设置表格的样式*/
+.list table {
+    border: 1px solid #ccc;
+    /*边框合并必须写在table上*/
+    border-collapse: collapse;
+    height: 100%;
+    width: 100%;
+}
+
+.list td {
+    border: 1px solid #ccc;
+    text-align: center;
+}
+
+.list thead tr {
+    background-color: #fbedce;
+    font-weight: bold;
+    height: 66px;
+}
+
+.list tbody tr {
+    background-color: #fff;
+    height: 9%;
+}
+
+.list tbody tr:hover {
+    background-color: #f7f9fd;
+}
+
+.list input:hover {
+    cursor: pointer;
+}
+.modify{
+    border: 0;
+    background-color: white;
+    color: #20a0ff;
+}
+.delete{
+    padding-left: 15px;
+    border: 0;
+    background-color: white;
+    color: red;
+}
+.add {
+    background-color: #20a0ff;
+    color: white;
+    padding-left: 15px;
+    padding-right: 15px;
+    margin-right: 20px;
+    margin-left: 1030px;
+}
+
+/**
+首页
+ */
+.content p{
+    text-align: center;
+
+}
+.main_icon{
+    padding-top: 100px;
+}
+.hello {
+    font-size: 50px;
+    padding-top: 50px;
+}
+
+/*增加会议*/
+.content form{
+    width: 50%;
+    height: 100%;
+}
+
+
