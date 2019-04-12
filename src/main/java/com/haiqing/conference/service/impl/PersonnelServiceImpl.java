@@ -54,7 +54,7 @@ public class PersonnelServiceImpl implements PersonnelService {
         log.info("- enter into method PersonnelServiceImpl.getPersonnerByName,parameter name:{}", name);
         List<Personnel> personnels = personnelMapper.selectByName(name);
         if (EmptyUtility.isNullOrEmpty(personnels)) {
-            return new ResultBean(1046);
+            return new ResultBean<List<Personnel>>(1046,personnels);
         }
         return new ResultBean<List<Personnel>>(1, personnels);
     }

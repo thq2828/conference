@@ -28,7 +28,7 @@ public class ConferenceMapperTest {
         conference.setTitle("前端评审");
         conference.setStartTime(System.currentTimeMillis());
         conference.setEndTime(System.currentTimeMillis()+1000*60*60*2);
-        conference.setPresonnels(new Integer[]{1,2});
+        conference.setPersonnelIds(new Integer[]{1,2});
         conference.setCreateAt(System.currentTimeMillis());
         conference.setCreateBy(1);
         conference.setUpdateAt(System.currentTimeMillis());
@@ -73,9 +73,9 @@ public class ConferenceMapperTest {
         Map<String,Object> map =new HashMap<>();
         //map.put("meettingId",2);
         //map.put("personnelId",1);
-        map.put("title","会议");
-        map.put("startTime",1005);
-        map.put("endTime",9998);
+        map.put("title","demo");
+        //map.put("startTime",1005);
+        //map.put("endTime",9998);
         //map.put("sortStartTime",1);
         System.out.println(conferenceMapper.selectByPrimaryKeySelective(map));
 

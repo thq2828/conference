@@ -53,7 +53,7 @@ public class MeettingRoomServiceImpl implements MeettingRoomService {
                 " name:{}", name);
         List<MeettingRoom> meettingRoom =meettingRoomMapper.selectByName(name);
         if (EmptyUtility.isNullOrEmpty(meettingRoom)){
-            return new ResultBean(1039);
+            return new ResultBean<List<MeettingRoom>>(1039,meettingRoom);
         }
         return new ResultBean<List<MeettingRoom>>(1,meettingRoom);
     }

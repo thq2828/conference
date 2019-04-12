@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.haiqing.conference.dao.ConferenceMapper">
-    <resultMap id="BaseResultMap" type="com.haiqing.conference.pojo.Conference">
+    <resultMap id="BaseResultMap" type="com.haiqing.conference.dto.ConferenceImplVo">
         <id column="id" property="id" jdbcType="INTEGER"/>
         <result column="meetting_id" property="meettingId" jdbcType="INTEGER"/>
         <result column="personnel_id" property="personnelId" jdbcType="INTEGER"/>
@@ -12,6 +12,18 @@
         <result column="create_by" property="createBy" jdbcType="INTEGER"/>
         <result column="update_at" property="updateAt" jdbcType="BIGINT"/>
         <result column="update_by" property="updateBy" jdbcType="INTEGER"/>
+        <association property="personnel" javaType="com.haiqing.conference.pojo.Personnel">
+            <id column="id" property="id" jdbcType="INTEGER"/>
+            <result column="pname" property="name" jdbcType="VARCHAR"/>
+            <result column="department" property="department" jdbcType="VARCHAR"/>
+            <result column="profession" property="profession" jdbcType="VARCHAR"/>
+            <result column="sex" property="sex" jdbcType="TINYINT"/>
+        </association>
+        <association property="meettingRoom" javaType="com.haiqing.conference.pojo.MeettingRoom">
+            <id column="id" property="id" jdbcType="INTEGER"/>
+            <result column="mname" property="name" jdbcType="VARCHAR"/>
+            <result column="address" property="address" jdbcType="VARCHAR"/>
+        </association>
     </resultMap>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
     delete from conference
@@ -34,8 +46,6 @@
       title = #{title,jdbcType=VARCHAR},
       start_time = #{startTime,jdbcType=BIGINT},
       end_time = #{endTime,jdbcType=BIGINT},
-      create_at = #{createAt,jdbcType=BIGINT},
-      create_by = #{createBy,jdbcType=INTEGER},
       update_at = #{updateAt,jdbcType=BIGINT},
       update_by = #{updateBy,jdbcType=INTEGER}
     where id = #{id,jdbcType=INTEGER}
@@ -54,60 +64,75 @@
   </select>
     <!--动态查询接口:针对会议管理查询-->
     <select id="selectByPrimaryKeySelective" resultMap="BaseResultMap" parameterType="map">
-        select id, meetting_id, personnel_id, title, start_time, end_time, create_at, create_by,
-        update_at, update_by
-        from conference
+        select c.id, c.meetting_id,c.personnel_id,m.name as mname, p.name pname, c.title, c.start_time, c.end_time,
+        c.create_at,
+        c.create_by,
+        c.update_at, c.update_by
+        from conference c
+        left join meetting_room m on c.meetting_id=m.id
+        left join personnel p on c.personnel_id=p.id
         <trim prefix="WHERE" suffixOverrides="AND|OR">
-            <if test="mettingId != null">
-                meetting_id=#{mettingId} and
+
+            <if test="id !=null">
+                c.id!=#{id} and
+            </if>
+            <if test="meettingId != null">
+                c.meetting_id=#{meettingId} and
             </if>
             <if test="personnelId != null">
-                personnel_id=#{personnelId} and
+                c.personnel_id=#{personnelId} and
             </if>
             <if test="title != null">
                 <bind name="title" value="'%'+title+'%'"/>
-                title like #{title} and
+                c.title like #{title} and
             </if>
             <choose>
                 <when test="startTime != null and endTime != null">
-                    (start_time &gt; #{startTime} and start_time &lt; #{endTime}
-                 or end_time &gt; #{startTime} and end_time &lt; #{endTime}
-                 or start_time &lt;= #{startTime} and end_time &gt;= #{endTime})
+                    (c. start_time &gt; #{startTime} and c.start_time &lt; #{endTime}
+                    or c.end_time &gt; #{startTime} and c.end_time &lt; #{endTime}
+                    or c.start_time &lt;= #{startTime} and c.end_time &gt;= #{endTime})
                 </when>
                 <when test="startTime != null and endTime == null">
-                    start_time &gt;= #{startTime}
+                    c.start_time &gt;= #{startTime}
                 </when>
                 <when test="endTime != null and startTime == null">
-                    end_time &lt;= #{endTime}
+                    c.end_time &lt;= #{endTime}
                 </when>
             </choose>
-
-            <!--<if test="startTime != null">-->
-                <!--start_time &gt;= #{startTime} and-->
-            <!--</if>-->
-            <!--<if test="endTime != null">-->
-                <!--end_time &lt;= #{endTime}-->
-            <!--</if>-->
-
         </trim>
-        <trim prefix="order by">
+
+        <trim prefix="order by" suffixOverrides=",">
+            <if test="sortCreateAt == 8">
+                create_at desc,
+            </if>
+            <if test="sortCreateAt == 9">
+                create_at,
+            </if>
             <if test="sortStartTime == 0">
-                start_time
+                start_time,
             </if>
             <if test="sortStartTime == 1">
-                start_time desc
+                start_time desc,
             </if>
             <if test="sortMeettingId == 2">
-                meetting_id
+                convert(m.name using gbk) collate gbk_chinese_ci asc,
+            </if>
+            <if test="sortMeettingId == 5">
+                convert(m.name using gbk) collate gbk_chinese_ci desc,
             </if>
             <if test="sortPersonnelId == 3">
-                personnel_id
+                convert(p.name using gbk) collate gbk_chinese_ci asc,
+            </if>
+            <if test="sortPersonnelId == 6">
+                convert(p.name using gbk) collate gbk_chinese_ci desc,
             </if>
             <if test="sortTitle == 4">
-                title
+                convert(title using gbk) collate gbk_chinese_ci asc,
+            </if>
+            <if test="sortTitle == 7">
+                convert(title using gbk) collate gbk_chinese_ci desc,
             </if>
         </trim>
-
         <if test="start!=null and size!=null">
             limit #{start},#{size}
         </if>

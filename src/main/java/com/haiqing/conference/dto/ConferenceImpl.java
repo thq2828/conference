@@ -11,27 +11,27 @@ import java.util.Arrays;
  * Time: 15:50
  */
 public class ConferenceImpl extends Conference {
-    private Integer[] presonnels;
-
-    public ConferenceImpl(Integer[] presonnels) {
-        this.presonnels = presonnels;
-    }
+    private Integer[] personnelIds;
 
     public ConferenceImpl() {
     }
 
-    public Integer[] getPresonnels() {
-        return presonnels;
+    public ConferenceImpl(Integer[] personnelIds) {
+        this.personnelIds = personnelIds;
     }
 
-    public void setPresonnels(Integer[] presonnels) {
-        this.presonnels = presonnels;
+    public Integer[] getPersonnelIds() {
+        return personnelIds;
+    }
+
+    public void setPersonnelIds(Integer[] personnelIds) {
+        this.personnelIds = personnelIds;
     }
 
     @Override
     public String toString() {
         return "ConferenceImpl{" +
-                "presonnels=" + Arrays.toString(presonnels) +
+                "personnelIds=" + Arrays.toString(personnelIds) +
                 "} " + super.toString();
     }
 }

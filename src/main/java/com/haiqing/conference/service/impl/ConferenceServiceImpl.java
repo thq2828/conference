@@ -3,6 +3,7 @@ package com.haiqing.conference.service.impl;
 import com.haiqing.conference.dao.ConferenceAndPersonnelMapper;
 import com.haiqing.conference.dao.ConferenceMapper;
 import com.haiqing.conference.dao.PersonnelMapper;
+import com.haiqing.conference.dto.ConferenceImplVo;
 import com.haiqing.conference.dto.PageResultBean;
 import com.haiqing.conference.dto.ResultBean;
 import com.haiqing.conference.exception.IsConferenceException;
@@ -36,6 +37,7 @@ public class ConferenceServiceImpl implements ConferenceService {
 
     /**
      * 获取会议详情
+     * F
      *
      * @param id
      * @return
@@ -48,32 +50,38 @@ public class ConferenceServiceImpl implements ConferenceService {
         if (EmptyUtility.isNullOrEmpty(conference)) {
             return new ResultBean(1027);
         }
-        Map<String,Object> map =new HashMap<>();
-        map.put("conferenceId",id);
-        List<Map<String,Object>> maps =conferenceAndPersonnelMapper.selectBySeletive(map);
-        List<Integer> personnelIds =new ArrayList<>();
-        for (Map<String,Object> map1:maps){
+        Map<String, Object> map = new HashMap<>();
+        map.put("conferenceId", id);
+        List<Map<String, Object>> maps = conferenceAndPersonnelMapper.selectBySeletive(map);
+        List<Integer> personnelIds = new ArrayList<>();
+        for (Map<String, Object> map1 : maps) {
             personnelIds.add((Integer) map1.get("per_id"));
         }
-        ConferenceImpl conference1 =(ConferenceImpl)conference;
-        ((ConferenceImpl) conference).setPresonnels(personnelIds.toArray(new Integer[0]));
-        return new ResultBean<Conference>(1, conference);
+        ConferenceImpl conference1 = new ConferenceImpl();
+        conference1.setId(conference.getId());
+        conference1.setMeettingId(conference.getMeettingId());
+        conference1.setPersonnelId(conference.getPersonnelId());
+        conference1.setTitle(conference.getTitle());
+        conference1.setStartTime(conference.getStartTime());
+        conference1.setEndTime(conference.getEndTime());
+        conference1.setPersonnelIds(personnelIds.toArray(new Integer[0]));
+        return new ResultBean<Conference>(1, conference1);
     }
 
     /**
      * 搜索栏对应的业务方法
      *
+     * @param start
      * @param map
      * @param size
-     * @param start
      * @return
      */
     @Override
     public PageResultBean getConferences(Map<String, Object> map, Integer size, Integer start) {
         log.info("- enter into method ConferenceServiceImpl.getConferences,parameter" +
-                " map:{}", map.toString());
+                " map:{}，size:{}，start:{}", map.toString(), size, start);
         //查询出数据的总数
-        List<Conference> conferences = conferenceMapper.selectByPrimaryKeySelective(map);
+        List<ConferenceImplVo> conferences = conferenceMapper.selectByPrimaryKeySelective(map);
         if (EmptyUtility.isNullOrEmpty(conferences)) {
             return new PageResultBean(1028);
         }
@@ -81,13 +89,13 @@ public class ConferenceServiceImpl implements ConferenceService {
         int totalRecord = conferences.size();
         if (totalRecord < size) {
             log.info("总数小于size直接返回数据");
-            return new PageResultBean<List<Conference>>(1, size, totalRecord, conferences);
+            return new PageResultBean<List<ConferenceImplVo>>(1, size, totalRecord, conferences);
         }
         //totalRecord>size进行分页查询
         map.put("size", size);
         map.put("start", start);
         conferences = conferenceMapper.selectByPrimaryKeySelective(map);
-        return new PageResultBean<List<Conference>>(1, size, totalRecord, conferences);
+        return new PageResultBean<List<ConferenceImplVo>>(1, size, totalRecord, conferences);
     }
 
     /**
@@ -108,43 +116,59 @@ public class ConferenceServiceImpl implements ConferenceService {
         if (isConferenceByOrganizer(conference)) {
             return new ResultBean(1029);
         }
-        //增加会议管理表中的记录
-        int i = conferenceMapper.insert(conference);
-        if (i < 1) {
-            return new ResultBean(0);
-        }
 
-        //判断参会人员是否参加多个会议
-        List<Integer> isPersonnel = isConference(conference);
-        List<Integer> personnelIds = new ArrayList<>();
-        //遍历参会人员数组，向关系表中插入关联数据
-        for (Integer personnelId : conference.getPresonnels()) {
-            conference.setPersonnelId(personnelId);
-            //判断参会人员是否在该时间段有组织的会议
+
+        if (conference.getId() == null) {
+            //增加会议管理表中的记录
+            int i = conferenceMapper.insert(conference);
+            if (i < 1) {
+                return new ResultBean(0);
+            }
+        } else {
+            int i = conferenceMapper.updateByPrimaryKey(conference);
+            if (i < 1) {
+                return new ResultBean(0);
+            }
+            conferenceAndPersonnelMapper.deleteByconferenceId(conference.getId());
+        }
+        List<Integer> list = new ArrayList<Integer>(Arrays.asList(conference.getPersonnelIds()));
+        conferenceAndPersonnelMapper.insertByMultiterm(conference.getId(), list);
+        return new ResultBean<Map>(1);
+    }
+
+    /**
+     * 增加参数判断
+     *
+     * @param conference
+     * @return
+     */
+    @Override
+    public ResultBean checkUser(ConferenceImpl conference) {
+        log.info("- enter into method ConferenceServiceImpl.addConference,parameter" +
+                " conference:{}", conference);
+
+        if (conference.getPersonnelId() != null) {
             if (isConferenceByOrganizer(conference)) {
-                //把冲突的数据放入
-                personnelIds.add(personnelId);
+                return new ResultBean(1029);
             }
         }
-        List<Integer> list = new ArrayList<Integer>(Arrays.asList(conference.getPresonnels()));
-        list.removeAll(personnelIds);
-        int i1 = conferenceAndPersonnelMapper.insertByMultiterm(conference.getId(), list);
+        if (conference.getMeettingId() != null) {
+            if (isConferenceByMeettingRoom(conference)) {
+                return new ResultBean(1030);
+            }
+        }
+        //判断参会人员是否参加多个会议
+        List<Integer> isPersonnel = isConference(conference);
         Map<String, Object> map = new HashMap<>();
         List<Personnel> conferPer = null;
         if (!EmptyUtility.isNullOrEmpty(isPersonnel)) {
             map.put("ids", isPersonnel);
             conferPer = personnelMapper.selectByIds(map);
+            map.clear();
+            map.put("conferPer", conferPer);
+            return new ResultBean<Map>(300, "已经在该时间段参加其他会议，是否确认提交本次会议", map);
         }
-        map.clear();
-        List<Personnel> conferOrg = null;
-        if (!EmptyUtility.isNullOrEmpty(personnelIds)) {
-            map.put("ids", personnelIds);
-            conferOrg = personnelMapper.selectByIds(map);
-        }
-        map.clear();
-        map.put("conferPer", conferPer);
-        map.put("conferOrg", conferOrg);
-        return new ResultBean<Map>(1, map);
+        return new ResultBean(1);
     }
 
     /**
@@ -165,34 +189,17 @@ public class ConferenceServiceImpl implements ConferenceService {
                 return new ResultBean(1030);
             }
         }
-        int i = conferenceMapper.updateByPrimaryKeySelective(conference);
-        if (i < 1) {
-            return new ResultBean(0);
-        }
         //更行关系表的数据
-        if (!EmptyUtility.isNullOrEmpty(conference.getPresonnels())) {
+        if (!EmptyUtility.isNullOrEmpty(conference.getPersonnelIds())) {
             //先删除会议室的所有参会人员
             int i1 = conferenceAndPersonnelMapper.deleteByconferenceId(conference.getId());
-            if (i1 < 1) {
-                return new ResultBean(1031);
-            }
-
             //插入更新的参会人员
             //判断参会人员是否参加多个会议
             List<Integer> isPersonnel = isConference(conference);
-            List<Integer> personnelIds = new ArrayList<>();
-            //遍历参会人员数组，向关系表中插入关联数据
-            for (Integer personnelId : conference.getPresonnels()) {
-                conference.setPersonnelId(personnelId);
-                //判断参会人员是否在该时间段有组织的会议
-                if (isConferenceByOrganizer(conference)) {
-                    //把冲突的数据放入
-                    personnelIds.add(personnelId);
-                }
-            }
-            List<Integer> list = new ArrayList<Integer>(Arrays.asList(conference.getPresonnels()));
-            list.removeAll(personnelIds);
-            int i3 = conferenceAndPersonnelMapper.insertByMultiterm(conference.getId(), list);
+            List<Integer> list = new ArrayList<Integer>(Arrays.asList(conference.getPersonnelIds()));
+            //批量插入数据
+            int i2 = conferenceAndPersonnelMapper.insertByMultiterm(conference.getId(), list);
+
             Map<String, Object> map = new HashMap<>();
             List<Personnel> conferPer = null;
             if (!EmptyUtility.isNullOrEmpty(isPersonnel)) {
@@ -200,19 +207,17 @@ public class ConferenceServiceImpl implements ConferenceService {
                 conferPer = personnelMapper.selectByIds(map);
             }
             map.clear();
-            List<Personnel> conferOrg = null;
-            if (!EmptyUtility.isNullOrEmpty(personnelIds)) {
-                map.put("ids", personnelIds);
-                conferOrg = personnelMapper.selectByIds(map);
-            }
-            map.clear();
             map.put("conferPer", conferPer);
-            map.put("conferOrg", conferOrg);
-            return new ResultBean<Map>(1, map);
 
+            return new ResultBean<Map>(1, map);
+        }
+        int i = conferenceMapper.updateByPrimaryKeySelective(conference);
+        if (i < 1) {
+            return new ResultBean(0);
         }
         return new ResultBean(1);
     }
+
 
     /**
      * 删除一条会议接口
@@ -225,6 +230,7 @@ public class ConferenceServiceImpl implements ConferenceService {
         log.info("- enter into method ConferenceServiceImpl.deleteConference,parameter" +
                 " id:{}", id);
         int i = conferenceMapper.deleteByPrimaryKey(id);
+        int i1 = conferenceAndPersonnelMapper.deleteByconferenceId(id);
         if (i < 1) {
             return new ResultBean(0);
         }
@@ -238,14 +244,16 @@ public class ConferenceServiceImpl implements ConferenceService {
      * @return
      */
     private boolean isConferenceByMeettingRoom(Conference conference) {
-        log.info("- enter into method ConferenceServiceImpl.deleteConference,parameter" +
+        log.info("- enter into method ConferenceServiceImpl.isConferenceByMeettingRoom,parameter" +
                 " conference:{}", conference);
         //判断会议室是否在这个时间段有会议
         Map<String, Object> map = new HashMap();
-        map.put("mettingId", conference.getMeettingId());
+        map.put("id", conference.getId());
+        map.put("meettingId", conference.getMeettingId());
         map.put("startTime", conference.getStartTime());
         map.put("endTime", conference.getEndTime());
-        List<Conference> conferences = conferenceMapper.selectByPrimaryKeySelective(map);
+        List<ConferenceImplVo> conferences = conferenceMapper.selectByPrimaryKeySelective(map);
+        System.out.println(conferences);
         if (EmptyUtility.isNullOrEmpty(conferences)) {
             return false;
         }
@@ -262,10 +270,11 @@ public class ConferenceServiceImpl implements ConferenceService {
 
         //判断组织人员是否在这个时间段有会议
         Map<String, Object> map = new HashMap();
+        map.put("id", conference.getId());
         map.put("personnelId", conference.getPersonnelId());
         map.put("startTime", conference.getStartTime());
         map.put("endTime", conference.getEndTime());
-        List<Conference> conferences = conferenceMapper.selectByPrimaryKeySelective(map);
+        List<ConferenceImplVo> conferences = conferenceMapper.selectByPrimaryKeySelective(map);
         if (EmptyUtility.isNullOrEmpty(conferences)) {
             return false;
         }
@@ -284,7 +293,7 @@ public class ConferenceServiceImpl implements ConferenceService {
         map.put("startTime", conference.getStartTime());
         map.put("endTime", conference.getEndTime());
         //查询出这个时间段的全部会议记录
-        List<Conference> conferences = conferenceMapper.selectByPrimaryKeySelective(map);
+        List<ConferenceImplVo> conferences = conferenceMapper.selectByPrimaryKeySelective(map);
         //删除刚插入或者更新的那个元素
         conferences.removeIf(conferenceIterator -> conference.getId() == conferenceIterator.getId());
         if (EmptyUtility.isNullOrEmpty(conferences)) {
@@ -292,7 +301,7 @@ public class ConferenceServiceImpl implements ConferenceService {
         }
         List<Integer> personnels = new ArrayList<>();
         //遍历这个时间的所有会议记录
-        for (Conference conference1 : conferences) {
+        for (ConferenceImplVo conference1 : conferences) {
             //查询出每条会议的参会人员
             map.clear();
             map.put("conferenceId", conference1.getId());
@@ -300,7 +309,7 @@ public class ConferenceServiceImpl implements ConferenceService {
             //遍历出参会人员
             for (Map<String, Object> map1 : maps) {
                 //判断这个参会人员是否在这段时间有会议
-                if (Arrays.asList(conference.getPresonnels()).contains((Integer) map1.get("per_id"))) {
+                if (Arrays.asList(conference.getPersonnelIds()).contains((Integer) map1.get("per_id"))) {
                     personnels.add((Integer) map1.get("per_id"));
                 }
             }

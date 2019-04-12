@@ -1,5 +1,6 @@
 package com.haiqing.conference.dao;
 
+import com.haiqing.conference.dto.ConferenceImplVo;
 import com.haiqing.conference.pojo.Conference;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -15,7 +16,7 @@ public interface ConferenceMapper {
 
      Conference selectByPrimaryKey(Integer id);
 
-     List<Conference> selectAll();
+     List<ConferenceImplVo> selectAll();
 
      int updateByPrimaryKey(Conference record);
 
@@ -24,7 +25,7 @@ public interface ConferenceMapper {
       * @param map 动态的条件
       * @return 查询出来的数据（多条）
       */
-     List<Conference> selectByPrimaryKeySelective(Map<String,Object> map);
+     List<ConferenceImplVo> selectByPrimaryKeySelective(Map<String,Object> map);
 
      /**
       * @description 查询出会议的总数

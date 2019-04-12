@@ -16,36 +16,49 @@ import java.util.Map;
 public interface ConferenceService {
     /**
      * 获取会议详情
+     *
      * @param id
      * @return
      */
-     ResultBean getConference(Integer id);
+    ResultBean getConference(Integer id);
 
     /**
      * 动态查询会议记录
+     *
      * @param map
      * @return
      */
-     PageResultBean getConferences(Map<String,Object> map,Integer size,Integer start);
+    PageResultBean getConferences(Map<String, Object> map, Integer size, Integer start);
 
     /**
      * 增加一调会议
+     *
      * @param conference
      * @return
      */
-     ResultBean addConference(ConferenceImpl conference) throws IsConferenceException;
+    ResultBean addConference(ConferenceImpl conference) throws IsConferenceException;
 
     /**
      * 更新一条会议记录
+     *
      * @param conference
      * @return
      */
-     ResultBean putConference(ConferenceImpl conference) throws IsConferenceException;
+    ResultBean putConference(ConferenceImpl conference) throws IsConferenceException;
 
     /**
      * 删除一条会议记录
+     *
      * @param id
      * @return
      */
-     ResultBean deleteConference(Integer id);
+    ResultBean deleteConference(Integer id);
+
+    /**
+     * 增加参数盘数
+     *
+     * @param conference
+     * @return
+     */
+    ResultBean checkUser(ConferenceImpl conference);
 }

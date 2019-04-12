@@ -20,7 +20,7 @@ public interface MeettingRoomMapper {
 
     int updateByPrimaryKey(MeettingRoom record);
 
-    List<MeettingRoom> selectByName(String name);
+    List<MeettingRoom> selectByName(@Param("name") String name);
 
     int updateBySelective(MeettingRoom meettingRoom);
 }

@@ -48,7 +48,7 @@
     <select id="selectAll" resultMap="BaseResultMap" parameterType="map">
         select id, name, department, profession, sex, create_at, create_by, updata_at, updata_by
         from personnel
-        order by updata_at
+        order by updata_at desc
         <if test="start!=null and size!=null">
             limit #{start},#{size}
         </if>

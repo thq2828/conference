@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.haiqing.conference.dao.MeettingRoomMapper" >
-  <resultMap id="BaseResultMap" type="com.haiqing.conference.pojo.MeettingRoom" >
-    <id column="id" property="id" jdbcType="INTEGER" />
-    <result column="name" property="name" jdbcType="VARCHAR" />
-    <result column="address" property="address" jdbcType="VARCHAR" />
-    <result column="create_at" property="createAt" jdbcType="BIGINT" />
-    <result column="create_by" property="createBy" jdbcType="INTEGER" />
-    <result column="update_at" property="updateAt" jdbcType="BIGINT" />
-    <result column="update_by" property="updateBy" jdbcType="INTEGER" />
-  </resultMap>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+<mapper namespace="com.haiqing.conference.dao.MeettingRoomMapper">
+    <resultMap id="BaseResultMap" type="com.haiqing.conference.pojo.MeettingRoom">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="address" property="address" jdbcType="VARCHAR"/>
+        <result column="create_at" property="createAt" jdbcType="BIGINT"/>
+        <result column="create_by" property="createBy" jdbcType="INTEGER"/>
+        <result column="update_at" property="updateAt" jdbcType="BIGINT"/>
+        <result column="update_by" property="updateBy" jdbcType="INTEGER"/>
+    </resultMap>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
     delete from meetting_room
     where id = #{id,jdbcType=INTEGER}
   </delete>
-  <insert id="insert" parameterType="com.haiqing.conference.pojo.MeettingRoom" >
+    <insert id="insert" parameterType="com.haiqing.conference.pojo.MeettingRoom">
     insert into meetting_room (id, name, address, 
       create_at, create_by, update_at, 
       update_by)
@@ -22,7 +22,7 @@
       #{createAt,jdbcType=BIGINT}, #{createBy,jdbcType=INTEGER}, #{updateAt,jdbcType=BIGINT}, 
       #{updateBy,jdbcType=INTEGER})
   </insert>
-  <update id="updateByPrimaryKey" parameterType="com.haiqing.conference.pojo.MeettingRoom" >
+    <update id="updateByPrimaryKey" parameterType="com.haiqing.conference.pojo.MeettingRoom">
     update meetting_room
     set name = #{name,jdbcType=VARCHAR},
       address = #{address,jdbcType=VARCHAR},
@@ -32,46 +32,49 @@
       update_by = #{updateBy,jdbcType=INTEGER}
     where id = #{id,jdbcType=INTEGER}
   </update>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
     select id, name, address, create_at, create_by, update_at, update_by
     from meetting_room
     where id = #{id,jdbcType=INTEGER}
   </select>
-  <select id="selectAll" resultMap="BaseResultMap" parameterType="map" >
-    select id, name, address, create_at, create_by, update_at, update_by
-    from meetting_room
-    <if test="start!=null and size!=null">
-      limit #{start},#{size}
-    </if>
-  </select>
-  <!--根据姓名查找会议室-->
-  <select id="selectByName" parameterType="string" resultMap="BaseResultMap">
-    select id, name, address, create_at, create_by, update_at, update_by
-    from meetting_room
-    where name = #{name,jdbcType=VARCHAR}
-  </select>
-  <update id="updateBySelective" parameterType="com.haiqing.conference.pojo.MeettingRoom">
-      update meetting_room
-      <set>
-        <if test="name !=null">
-          name = #{name,jdbcType=VARCHAR},
+    <select id="selectAll" resultMap="BaseResultMap" parameterType="map">
+        select id, name, address, create_at, create_by, update_at, update_by
+        from meetting_room
+        order by update_at desc
+        <if test="start!=null and size!=null">
+            limit #{start},#{size}
         </if>
-        <if test="address != null">
-          address = #{address,jdbcType=VARCHAR},
-        </if>
-        <if test="createBy != null">
-          create_by = #{createBy,jdbcType=INTEGER},
-        </if>
-        <if test="updateBy != null">
-          update_by = #{updateBy,jdbcType=INTEGER},
-        </if>
-        <if test="updateAt != null">
-          update_at = #{updateAt,jdbcType=BIGINT},
-        </if>
-        <if test="createAt != null">
-          create_at = #{createAt,jdbcType=BIGINT},
-        </if>
-      </set>
-      where id = #{id,jdbcType=INTEGER}
-  </update>
+    </select>
+    <!--根据姓名查找会议室-->
+    <select id="selectByName" parameterType="string" resultMap="BaseResultMap">
+        select id, name, address, create_at, create_by, update_at, update_by
+        from meetting_room
+        where
+        <bind name="name" value="'%'+name+'%'"/>
+        name like #{name,jdbcType=VARCHAR}
+    </select>
+    <update id="updateBySelective" parameterType="com.haiqing.conference.pojo.MeettingRoom">
+        update meetting_room
+        <set>
+            <if test="name !=null">
+                name = #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="address != null">
+                address = #{address,jdbcType=VARCHAR},
+            </if>
+            <if test="createBy != null">
+                create_by = #{createBy,jdbcType=INTEGER},
+            </if>
+            <if test="updateBy != null">
+                update_by = #{updateBy,jdbcType=INTEGER},
+            </if>
+            <if test="updateAt != null">
+                update_at = #{updateAt,jdbcType=BIGINT},
+            </if>
+            <if test="createAt != null">
+                create_at = #{createAt,jdbcType=BIGINT},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
 </mapper>

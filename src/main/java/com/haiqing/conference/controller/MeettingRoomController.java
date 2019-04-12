@@ -46,6 +46,7 @@ public class MeettingRoomController {
     public ResultBean queryMeettingRoons(@RequestParam(name = "page",required = false)Integer page,
                                          @RequestParam(name = "size",required = false)Integer size){
         log.info("- enter into method MeettingRoomController.queryMeettingRoons,parameter page:{},size:{}", page,size);
+        System.out.println(Integer.MAX_VALUE);
         //参数校验
         if (page == null || page < 1) {
             page = START_PAGE;
@@ -107,16 +108,16 @@ public class MeettingRoomController {
     /**
      * 更新一个会议室
      *
-     * @param id
+     * @param
      * @param meettingRoom
      * @return
      */
-    @PutMapping("/MeettingRoom/{id}")
-    public ResultBean putMeettingRoom(@PathVariable(value = "id") Integer id,
-                                      @RequestBody MeettingRoom meettingRoom) {
-        log.info("- enter into method MeettingRoomController.putMeettingRoom,parameter id : {},meettingRoom:{}", id, meettingRoom);
+    @PutMapping("/MeettingRoom")
+    public ResultBean putMeettingRoom(
+            @RequestBody MeettingRoom meettingRoom) {
+        log.info("- enter into method MeettingRoomController.putMeettingRoom,parameter ,meettingRoom:{}", meettingRoom);
         //加入更新时间等数据
-        meettingRoom.setId(id);
+
         meettingRoom.setUpdateAt(System.currentTimeMillis());
         meettingRoom.setUpdateBy(1);
         return meettingRomService.putMeettingRoom(meettingRoom);
@@ -129,7 +130,7 @@ public class MeettingRoomController {
      * @param id
      * @return
      */
-    @DeleteMapping("/MeettingRoom/{id}")
+        @DeleteMapping("/MeettingRoom/{id}")
     public ResultBean delMeettingRoom(@PathVariable(value = "id") Integer id) {
         log.info("- enter into method MeettingRoomController.putMeettingRoom,parameter id : {}", id);
         return meettingRomService.delMeettingRoom(id);

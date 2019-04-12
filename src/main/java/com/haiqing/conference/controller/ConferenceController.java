@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -62,7 +64,7 @@ public class ConferenceController {
      * @param size
      * @return
      */
-    @GetMapping("/confenreces")
+    @GetMapping("/conferences")
     public ResultBean queryConferences(@RequestParam(name = "meettingId", required = false) Integer meettingId,
                                        @RequestParam(name = "personnelId", required = false) Integer personnelId,
                                        @RequestParam(name = "title", required = false) String title,
@@ -72,12 +74,14 @@ public class ConferenceController {
                                        @RequestParam(name = "sortMeettingId", required = false) Integer sortMeettingId,
                                        @RequestParam(name = "sortTitle", required = false) Integer sortTitle,
                                        @RequestParam(name = "sortPersonnelId", required = false) Integer sortPersonnelId,
+                                       @RequestParam(name = "sortCreateAt", required = false) Integer sortCreateAt,
                                        @RequestParam(name = "page", required = false) Integer page,
-                                       @RequestParam(name = "size", required = false) Integer size) {
+                                       @RequestParam(name = "size", required = false) Integer size, HttpServletResponse response) {
         log.info("- enter into method ConferenceController.queryConferences,parameter" +
                         " meettingId:{},personnelId:{},title:{},startTime:{}," +
                         "endTime:{},page:{},size:{},sortStartTime:{},sortMeettingId:{},sortTitle:{},sortPersonnelId:{}",
                 meettingId, personnelId, title, startTime, endTime, page, size, sortStartTime, sortMeettingId, sortTitle, sortPersonnelId);
+        //response.addHeader("Access-Control-Allow-Origin", "http://localhost:8080");
 
         //参数校验
         if (startTime != null && endTime != null) {
@@ -109,16 +113,15 @@ public class ConferenceController {
         if (endTime != null) {
             map.put("endTime", endTime);
         }
-        //判断排序条件是否符合常量值
-        if (sortStartTime == null && (sortMeettingId != SORT_MEETTINGROOM || sortPersonnelId != SORT_PERDONNEL || sortTitle != SORT_TITLE)) {
-            map.put("sortStartTime", SORT_STARTTIME);
+
+        if (sortCreateAt==null && sortStartTime == null && sortMeettingId == null && sortPersonnelId == null && sortTitle == null) {
+            map.put("sortCreateAt", 8);
+        }
+        if (sortCreateAt!=null){
+            map.put("sortCreateAt", sortCreateAt);
         }
         if (sortStartTime != null) {
-            if (sortStartTime == SORT_STARTTIME || sortStartTime == SORT_STARTTIME_DESC) {
-                map.put("sortStartTime", sortStartTime);
-            } else {
-                map.put("sortStartTime", sortStartTime);
-            }
+            map.put("sortStartTime", sortStartTime);
         }
         if (sortMeettingId != null) {
             map.put("sortMeettingId", sortMeettingId);
@@ -129,7 +132,7 @@ public class ConferenceController {
         if (sortTitle != null) {
             map.put("sortTitle", sortTitle);
         }
-        ResultBean resultBean = conferenceService.getConferences(map, size, page);
+        ResultBean resultBean = conferenceService.getConferences(map, size, start);
         //当数据不为空时加入第几页数据
         if (!EmptyUtility.isNullOrEmpty(resultBean.getData())) {
             ((PageResultBean) resultBean).setPageNum(page);
@@ -137,14 +140,55 @@ public class ConferenceController {
         return resultBean;
     }
 
+
+    /**
+     * 新增参数判断
+     */
+    @PostMapping("/conference1")
+    public ResultBean createConfenrece1(@RequestBody ConferenceImpl conference) {
+        log.info("- enter into method ConferenceController.createConfenrece1,parameter" +
+                " conference:{}", conference);
+
+        //参数校验
+        if (EmptyUtility.isNullOrEmpty(conference)) {
+            return new ResultBean(1001);
+        }
+        if (conference.getMeettingId() == null) {
+            return new ResultBean(1021);
+        }
+        if (conference.getPersonnelId() == null) {
+            return new ResultBean(1022);
+        }
+        if (EmptyUtility.strIsEmpty(conference.getTitle())) {
+            return new ResultBean(1023);
+        }
+        if (conference.getStartTime() == null || conference.getEndTime() == null) {
+            return new ResultBean(1024);
+        }
+
+        if (conference.getEndTime() - conference.getStartTime() <= 0) {
+            return new ResultBean(1025);
+        }
+        if (EmptyUtility.isNullOrEmpty(conference.getPersonnelIds()) || conference.getPersonnelIds().length < MINIMUM_ATTENDANCE) {
+            return new ResultBean(1026);
+        }
+        //加入创建人和时间
+        conference.setCreateAt(System.currentTimeMillis());
+        conference.setCreateBy(1);
+            return conferenceService.checkUser(conference);
+    }
+
+
+
     /**
      * 新增会议接口
      *
      * @param conference 各参数不能为空，详情看具体实现
      * @return
      */
+
     @PostMapping("/conference")
-    public ResultBean createConfenrece(@RequestBody ConferenceImpl conference)  {
+    public ResultBean createConfenrece(@RequestBody ConferenceImpl conference) {
         log.info("- enter into method ConferenceController.createConfenrece,parameter" +
                 " conference:{}", conference);
 
@@ -168,7 +212,7 @@ public class ConferenceController {
         if (conference.getEndTime() - conference.getStartTime() <= 0) {
             return new ResultBean(1025);
         }
-        if (EmptyUtility.isNullOrEmpty(conference.getPresonnels()) || conference.getPresonnels().length < MINIMUM_ATTENDANCE) {
+        if (EmptyUtility.isNullOrEmpty(conference.getPersonnelIds()) || conference.getPersonnelIds().length < MINIMUM_ATTENDANCE) {
             return new ResultBean(1026);
         }
         //加入创建人和时间
@@ -180,30 +224,25 @@ public class ConferenceController {
     /**
      * 更新一条会议记录接口
      *
-     * @param id
+     * @param
      * @param conference
      * @return
      */
-    @PutMapping("/conference/{id}")
-    public ResultBean updateConference(@PathVariable(value = "id") Integer id, @RequestBody ConferenceImpl conference)  {
+    @PutMapping("/conference")
+    public ResultBean updateConference(@RequestBody ConferenceImpl conference) {
         log.info("- enter into method ConferenceController.updateConference,parameter" +
-                " id:{},conference:{}", id, conference);
-
+                ",conference:{}", conference);
         //参数校验
         if (EmptyUtility.isNullOrEmpty(conference)) {
             return new ResultBean(1001);
         }
-        if (!EmptyUtility.isNullOrEmpty(conference.getPresonnels()) && conference.getPresonnels().length < MINIMUM_ATTENDANCE) {
+        if (EmptyUtility.isNullOrEmpty(conference.getPersonnelIds()) || conference.getPersonnelIds().length < MINIMUM_ATTENDANCE) {
             return new ResultBean(1026);
-        }
-        if (conference.getStartTime() == null || conference.getEndTime() == null) {
-            return new ResultBean(1024);
         }
         if (conference.getStartTime() != null && conference.getEndTime() != null && conference.getEndTime() < conference.getStartTime()) {
             new ResultBean(1025);
         }
         //加入更新的数据
-        conference.setId(id);
         conference.setUpdateAt(System.currentTimeMillis());
         conference.setUpdateBy(1);
         return conferenceService.putConference(conference);
